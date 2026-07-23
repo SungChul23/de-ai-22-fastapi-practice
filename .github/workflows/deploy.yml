@@ -30,7 +30,7 @@ jobs:
           ls -al
           cat main.py
         shell:  bash
-      
+
       # CI쪽 서버에서 EC2 서버(배포용 서버)로 배포 -> SSH
       # 사전 -> AWS에서 EC2 하나 생성 -> ip/domain , ubuntu(사용자명) , key는 pem파일
       #     -> Github상 해당 저장소에 secrets 변수로 위의 3개 값을 세팅
@@ -48,3 +48,15 @@ jobs:
           source: .
           # ubuntu os가 세팅된 ec2 서버의 /home/ubuntu/projects/*.* 복사
           target: "/home/ubuntu/projects"
+
+      # 소스코드만 복사하면 기존에 떠 있던 프로세스는 예전 코드로 계속 돌기 때문에
+      # 반드시 서비스를 재시작해줘야 새 코드가 실제로 반영됨
+      - name: restart hello.service on EC2
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            sudo systemctl restart hello.service
+            sudo systemctl status hello.service --no-pager
