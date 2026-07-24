@@ -59,4 +59,18 @@ jobs:
 
   # EC2에 docker-compose.yml, 설정파일등 copy, 도커컴포즈 작동
 
-  #cd:
+  cd:
+    needs: ci
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pull latest images & restart containers on EC2
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            cd ~/projects
+            docker compose pull
+            docker compose up -d --force-recreate
+            docker compose ps
